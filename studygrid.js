@@ -953,7 +953,7 @@ app.delete('/api/teacher_subject_allocation/:teacher_id', async (req, res) => {
 // POST route to add a new teacher-subject allocation
 app.post('/api/teacher_subject_allocation', async (req, res) => {
   try {
-    const { teacher_name, subject_code, subject_name, class: className, teacher_id } = req.body;
+    const { teacher_name, subject_code, subject_name, class: className, } = req.body;
 
     // Validate required fields
     if (!teacher_name || !subject_code || !subject_name || !className || !teacher_id) {
