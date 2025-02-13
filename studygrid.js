@@ -67,7 +67,7 @@ const noticeSchema = new mongoose.Schema(
 const studentSchema = new mongoose.Schema(
   {
     _id: { type: mongoose.Schema.Types.ObjectId, required: true, auto: true },
-    // id: { type: Number, required: true }, // Student ID (e.g., 1)
+    gender:{type: String, required: true },
     fullName: { type: String, required: true }, // Full name of the student (e.g., "John Doe")
     class: { type: String, required: true ,alias: 'className' }, // Class of the student (e.g., "LKG")
     password: { type: String, required: true }, // Password for the student (e.g., "password123")
@@ -129,7 +129,8 @@ const teacherSchema = new mongoose.Schema(
     name: { type: String, required: true }, // Teacher's full name (e.g., "Aarti Sharma")
     email: { type: String, required: true, unique: true }, // Teacher's email address (e.g., "aarti.sharma@example.com")
     
-    password: { type: String, required: true } // Teacher's password for login (e.g., "pass123")
+    password: { type: String, required: true } ,// Teacher's password for login (e.g., "pass123")
+    gender:{type: String, required: true }
   },
   { timestamps: true, strict: false } // Automatically handles createdAt and updatedAt
 );
@@ -507,8 +508,16 @@ app.get("/api/stats", async (req, res) => {
       
       // Get total count of unique classes
       const totalClasses = await StudentModel.distinct("class").then(classes => classes.length);
+       // Get male and female count for students
+       const maleStudents = await StudentModel.countDocuments({ gender: "Male" });
+       const femaleStudents = await StudentModel.countDocuments({ gender: "Female" });
+
+       // Get male and female count for teachers
+       const maleTeachers = await TeacherModel.countDocuments({ gender: "Male" });
+       const femaleTeachers = await TeacherModel.countDocuments({ gender: "Female" });
   
-      res.json({ totalTeachers, totalStudents, totalClasses });
+      res.json({ totalTeachers, totalStudents, totalClasses ,maleStudents,
+        femaleStudents, maleTeachers,femaleTeachers});
     } catch (err) {
       console.error("Error fetching stats:", err);
       res.status(500).json({ error: "Failed to fetch stats." });
@@ -828,7 +837,7 @@ app.put('/complains/:_id/status', async (req, res) => {
 app.get('/students', async (req, res) => {
   try {
     // Fetching 'fullName', '_id', and 'class' fields from the StudentModel
-    const students = await StudentModel.find({}, 'fullName _id class'); // 'class' should be correct in your schema
+    const students = await StudentModel.find({}, 'fullName _id class gender'); // 'class' should be correct in your schema
 
     // If students are found, return them as JSON
     res.json(students);
@@ -853,20 +862,38 @@ app.delete('/students/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete student', details: error.message });
   }
 });
+// PUT route to update a student by ID
+app.put('/students/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    const updatedStudent = await StudentModel.findByIdAndUpdate(id, updatedData, { new: true });
+
+    if (!updatedStudent) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    res.json({ message: 'Student updated successfully', student: updatedStudent });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update student', details: error.message });
+  }
+});
+
 
 // POST route to add a new student
 app.post('/students', async (req, res) => {
   try {
    
 
-    const { fullName, class: studentClass, password } = req.body;
+    const { fullName, class: studentClass, password ,gender} = req.body;
 
-    if (!fullName || !studentClass || !password) {
+    if (!fullName || !studentClass || !password ||!gender) {
       return res.status(400).json({ error: 'Full Name, Class, and Password are required' });
     }
 
     // Create and save the new student
-    const newStudent = new StudentModel({ fullName, class: studentClass, password });
+    const newStudent = new StudentModel({ fullName, class: studentClass, password, gender});
     await newStudent.save();
 
     // Return success message with the new student
@@ -904,15 +931,15 @@ app.delete('/api/teachers/:id', async (req, res) => {
 
 app.post('/api/teachers', async (req, res) => {
   try {
-    const { teacherId, name, email, password } = req.body;
+    const { teacherId, name, email, password ,gender} = req.body;
 
     // Validate required fields
-    if (!teacherId || !name || !email || !password) {
+    if (!teacherId || !name || !email || !password||!gende) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
     // Create and save teacher in MongoDB
-    const newTeacher = new TeacherModel({ teacherId, name, email, password });
+    const newTeacher = new TeacherModel({ teacherId, name, email, password,gende });
     await newTeacher.save();
 
     res.status(201).json({ message: 'Teacher added successfully', teacher: newTeacher });
