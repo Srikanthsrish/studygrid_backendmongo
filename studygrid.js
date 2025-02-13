@@ -934,12 +934,12 @@ app.post('/api/teachers', async (req, res) => {
     const { teacherId, name, email, password ,gender} = req.body;
 
     // Validate required fields
-    if (!teacherId || !name || !email || !password||!gende) {
+    if (!teacherId || !name || !email || !password||!gender) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
     // Create and save teacher in MongoDB
-    const newTeacher = new TeacherModel({ teacherId, name, email, password,gende });
+    const newTeacher = new TeacherModel({ teacherId, name, email, password,gender });
     await newTeacher.save();
 
     res.status(201).json({ message: 'Teacher added successfully', teacher: newTeacher });
