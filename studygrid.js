@@ -928,6 +928,27 @@ app.delete('/api/teachers/:id', async (req, res) => {
     res.status(500).json({ message: 'Error deleting teacher', error: error.message });
   }
 });
+// PUT route to update a teacher by teacherId
+app.put('/api/teachers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const updatedTeacher = await TeacherModel.findOneAndUpdate(
+      { teacherId: id },
+      updateData,
+      { new: true } // Returns the updated document
+    );
+
+    if (!updatedTeacher) {
+      return res.status(404).json({ error: 'Teacher not found' });
+    }
+
+    res.json({ message: 'Teacher updated successfully', teacher: updatedTeacher });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating teacher', error: error.message });
+  }
+});
 
 app.post('/api/teachers', async (req, res) => {
   try {
