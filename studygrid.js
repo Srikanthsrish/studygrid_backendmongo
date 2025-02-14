@@ -521,6 +521,28 @@ app.delete("/api/notices/:_id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete notice." });
   }
 });
+// Update a notice by ID
+app.put("/api/notices/:_id", async (req, res) => {
+  try {
+    const { _id } = req.params;
+    const { title, description } = req.body;
+
+    const updatedNotice = await NoticeModel.findByIdAndUpdate(
+      _id,
+      { title, description },
+      { new: true } // Returns the updated document
+    );
+
+    if (!updatedNotice) {
+      return res.status(404).json({ error: "Notice not found." });
+    }
+
+    res.status(200).json({ message: "Notice updated successfully!", notice: updatedNotice });
+  } catch (err) {
+    console.error("Error updating notice:", err);
+    res.status(500).json({ error: "Failed to update notice." });
+  }
+});
 
 // Get system stats
 app.get("/api/stats", async (req, res) => {
