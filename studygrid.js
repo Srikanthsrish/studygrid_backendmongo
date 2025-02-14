@@ -997,6 +997,28 @@ app.delete('/api/teacher_subject_allocation/:teacher_id', async (req, res) => {
     res.status(500).json({ message: 'Error deleting record', error: error.message });
   }
 });
+// PUT route to update a teacher-subject allocation by teacher_id
+app.put('/api/teacher_subject_allocation/:teacher_id', async (req, res) => {
+  try {
+    const { teacher_id } = req.params;
+    const updateData = req.body;
+
+    const updatedRecord = await TeacherSubjectAllocationModel.findOneAndUpdate(
+      { teacher_id },
+      updateData,
+      { new: true } // Returns the updated document
+    );
+
+    if (!updatedRecord) {
+      return res.status(404).json({ error: 'Record not found' });
+    }
+
+    res.json({ message: 'Record updated successfully', data: updatedRecord });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating record', error: error.message });
+  }
+});
+
 
 // POST route to add a new teacher-subject allocation
 app.post('/api/teacher_subject_allocation', async (req, res) => {
