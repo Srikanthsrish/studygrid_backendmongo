@@ -404,6 +404,31 @@ app.delete('/api/subjects/:subject_code', async (req, res) => {
     res.status(500).json({ message: 'Error deleting subject', error: err });
   }
 });
+// Update a subject
+app.put('/api/subjects/:subject_code', async (req, res) => {
+  const { subject_code } = req.params;
+  const updateData = req.body; // The data to update
+
+  try {
+    // Find and update the subject based on subject_code
+    const updatedSubject = await SubjectModel.findOneAndUpdate(
+      { subject_code },
+      updateData,
+      { new: true } // Returns the updated document
+    );
+
+    if (!updatedSubject) {
+      return res.status(404).json({ message: 'Subject not found' });
+    }
+
+    // Send success response
+    res.status(200).json({ message: 'Subject updated successfully', updatedSubject });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error updating subject', error: err });
+  }
+});
+
 
 
 // Get all teachers
