@@ -356,6 +356,24 @@ app.get('/api/subjects/:class', async (req, res) => {
       res.status(500).json({ success: false, message: "Server error. Please try again later." });
     }
   });
+  // API to check if an email already exists
+app.get('/check-email', async (req, res) => {
+  try {
+      const { email } = req.query;
+
+      // Check if a teacher with the given email exists
+      const teacher = await TeacherModel.findOne({ email });
+
+      if (!teacher) {
+          return res.json({ exists: true });
+      }
+
+      res.json({ exists: false });
+  } catch (error) {
+      
+      res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
  // POST: Add a new subject
 app.post('/api/subjects', async (req, res) => {
   const { subject_code, subject_name, class_name } = req.body;
