@@ -364,7 +364,7 @@ app.get('/api/teachers/check-email', async (req, res) => {
       // Check if a teacher with the given email exists
       const teacher = await TeacherModel.findOne({ email });
 
-      if (!teacher) {
+      if (teacher) {
           return res.json({ exists: true });
       }
 
