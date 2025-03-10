@@ -357,7 +357,7 @@ app.get('/api/subjects/:class', async (req, res) => {
     }
   });
   // API to check if an email already exists
-app.get('/check-email', async (req, res) => {
+app.get('/api/teachers/check-email', async (req, res) => {
   try {
       const { email } = req.query;
 
