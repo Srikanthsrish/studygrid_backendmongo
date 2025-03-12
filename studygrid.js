@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const multer = require("multer");
 const connection = require("./mongodb");
 const cors = require("cors");
 dotenv.config();
@@ -12,6 +13,7 @@ app.use(express.json());
 
 // Define User Schema
 // Import mongoose
+
 
 connection()
 // Define schemas for each collection
@@ -117,7 +119,8 @@ const teacherAssignmentSchema = new mongoose.Schema(
     subject_name: { type: String, required: true }, // Subject name (e.g., "Art and Craft")
     class: { type: String, required: true }, // Class (e.g., "1st")
     assignment_date: { type: Date, required: true }, // Date the assignment is created (e.g., "2025-01-29")
-    assignment_text: { type: String, required: true } // Assignment description (e.g., "Create a drawing based on your favorite festival.")
+    assignment_text: { type: String, required: true }, // Assignment description (e.g., "Create a drawing based on your favorite festival.")
+    assignment_file: { type: String, required: false }
   },
   { timestamps: true, strict: false } // Automatically handles createdAt and updatedAt
 );
@@ -146,6 +149,16 @@ const teacherTimetableSchema = new mongoose.Schema(
   },
   { timestamps: true, strict: false } // Automatically handles createdAt and updatedAt
 );
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Save files in 'uploads' folder
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Rename file with timestamp
+  },
+});
+
 
 // Create models for each collection
 const AdminModel = mongoose.model('admins', adminSchema);
@@ -665,6 +678,42 @@ app.get('/students/assignments/:class', async (req, res) => {
   } catch (err) {
     console.error('Error fetching assignments:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// ✅ **POST API: Add a New Assignment with File Upload**
+app.post("/students/assignments", upload.single("assignment_file"), async (req, res) => {
+  try {
+    const { teacher_id, teacher_name, subject_code, subject_name, class_name, assignment_date, assignment_text } = req.body;
+    
+    // ✅ Validate all fields and ensure file is uploaded
+    if (!teacher_id || !teacher_name || !subject_code || !subject_name || !class_name || !assignment_date || !assignment_text) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Assignment file is required." });
+    }
+
+    // ✅ Create new assignment with file path
+    const newAssignment = new AssignmentModel({
+      teacher_id,
+      teacher_name,
+      subject_code,
+      subject_name,
+      class: class_name,
+      assignment_date,
+      assignment_text,
+      assignment_file: req.file.path, // Store file path in database
+    });
+
+    // ✅ Save assignment to MongoDB
+    await newAssignment.save();
+
+    res.status(201).json({ message: "Assignment added successfully!", assignment: newAssignment });
+  } catch (err) {
+    console.error("Error adding assignment:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 // Endpoint to count assignments for a specific class
